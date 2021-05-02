@@ -13,10 +13,16 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.IOException
+import tw.idv.jew.datastoretest.Counter
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val dataStore = application.createDataStore(
         name = "testData"
+    )
+
+    private val counterDataStore = application.createDataStore(
+        fileName = "counter.ph",
+        serializer = CounterSerializer
     )
 
     fun increaseCounter() {
@@ -30,7 +36,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updateCounter() {
-
+        viewModelScope.launch {
+            counterDataStore.updateData {
+                Counter.newBuilder()
+                    .setValue(it.value + 1)
+                    .setTimestamp(System.currentTimeMillis())
+                    .setTag("test abc")
+                    .build()
+            }
+        }
     }
 
     val counter: Flow<Int> = dataStore.data
